@@ -34,7 +34,7 @@ public class Server {
                     message = (String)in.readObject();							//receive the message sent from the client
                     System.out.println("Receive message: " + message);			//show the message to the user
                     MESSAGE = message.toUpperCase();							//Capitalize all letters in the message
-                    sendMessage(MESSAGE);										//send MESSAGE back to the client
+                    sendMessage(MESSAGE);										//send MESSAGE back to the clients
                 }
             }
             catch(ClassNotFoundException classnot){

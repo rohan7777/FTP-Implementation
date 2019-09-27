@@ -9,7 +9,7 @@ public class Client {
     ObjectOutputStream out;         //stream write to the socket
     ObjectInputStream in;          //stream read from the socket
     String message;                //message send to the server
-    String MESSAGE;                //capitalized message read from the server
+    String MESSAGE;                //capitalized message read from the server ss
 
     public static void main(String args[]) {
         Client client = new Client();
