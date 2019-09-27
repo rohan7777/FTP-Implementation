@@ -1,7 +1,11 @@
+
+
+
 import java.net.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
+import java.security.MessageDigest;
 import java.util.*;
 
 public class Server {
@@ -10,6 +14,7 @@ public class Server {
     Socket connection = null; //socket for the connection with the client
     String message;    //message received from the client
     String MESSAGE;    //uppercase message send to the client
+    String ListOfDir;
     ObjectOutputStream out;  //stream write to the socket
     ObjectInputStream in;    //stream read from the socket
 
@@ -33,8 +38,24 @@ public class Server {
                 while(true) {
                     message = (String)in.readObject();							//receive the message sent from the client
                     System.out.println("Receive message: " + message);			//show the message to the user
-                    MESSAGE = message.toUpperCase();							//Capitalize all letters in the message
-                    sendMessage(MESSAGE);										//send MESSAGE back to the clients
+
+                    if(message.toString().toLowerCase().equals("dir")){
+                        final String pathOfFileServer = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPServer";
+                        MESSAGE = "\nPlease find the list of files on the server below - \n";
+                        final File folder = new File(pathOfFileServer);
+                        for (final File fileEntry : folder.listFiles()) {
+                            System.out.println(fileEntry.getName());
+                            MESSAGE += fileEntry.getName() + "\n";
+                        }
+                    }
+                    else{
+                        MESSAGE = message.toUpperCase();		//Capitalize all letters in the message
+                    }
+                    sendMessage(MESSAGE);					//send MESSAGE back to the client
+
+
+
+
                 }
             }
             catch(ClassNotFoundException classnot){
