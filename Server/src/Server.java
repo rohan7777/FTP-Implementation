@@ -17,7 +17,9 @@ public class Server {
     String ListOfDir;
     ObjectOutputStream out;  //stream write to the socket
     ObjectInputStream in;    //stream read from the socket
-
+    FileInputStream fis = null;
+    BufferedInputStream bis = null;
+    OutputStream os = null;
     public static void main(String args[]) {
         Server s = new Server();
         s.run();
@@ -25,7 +27,7 @@ public class Server {
     //public void Server() {}
     void run() {
         try {
-
+            final String pathOfFileServer = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPServer\\";
             sSocket = new ServerSocket(sPort, 10);										//create a serversocket
             System.out.println("Waiting for connection");								//Wait for connection
             connection = sSocket.accept();												//accept a connection from the client
@@ -38,9 +40,9 @@ public class Server {
                 while(true) {
                     message = (String)in.readObject();							//receive the message sent from the client
                     System.out.println("Receive message: " + message);			//show the message to the user
-
+                    String [] inputParamArr = message.split("\\s");
                     if(message.toString().toLowerCase().equals("dir")){
-                        final String pathOfFileServer = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPServer";
+
                         MESSAGE = "\nPlease find the list of files on the server below - \n";
                         final File folder = new File(pathOfFileServer);
                         for (final File fileEntry : folder.listFiles()) {
@@ -48,14 +50,31 @@ public class Server {
                             MESSAGE += fileEntry.getName() + "\n";
                         }
                     }
+                    else if(inputParamArr[0].toLowerCase().equals("get")){
+                        String filePath = pathOfFileServer + inputParamArr[1];
+                        try {
+                            // send file
+                            File myFile = new File (filePath);
+                            byte [] mybytearray  = new byte [(int)myFile.length()];
+                            fis = new FileInputStream(myFile);
+                            bis = new BufferedInputStream(fis);
+                            bis.read(mybytearray,0,mybytearray.length);
+                            os = connection.getOutputStream();
+                            System.out.println("Sending " + filePath + "(" + mybytearray.length + " bytes)");
+                            os.write(mybytearray,0,mybytearray.length);
+                            os.flush();
+                            System.out.println("Done.");
+                        }
+                        finally {
+                            if (bis != null) bis.close();
+                            if (os != null) os.close();
+                            //if (sock!=null) sock.close();
+                        }
+                    }
                     else{
                         MESSAGE = message.toUpperCase();		//Capitalize all letters in the message
                     }
                     sendMessage(MESSAGE);					//send MESSAGE back to the client
-
-
-
-
                 }
             }
             catch(ClassNotFoundException classnot){

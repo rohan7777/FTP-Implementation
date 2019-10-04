@@ -5,12 +5,19 @@ import java.nio.channels.*;
 import java.util.*;
 
 public class Client {
+    final String pathOfFileClient = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPClient\\";
     Socket requestSocket;           //socket connect to the server
     ObjectOutputStream out;         //stream write to the socket
     ObjectInputStream in;          //stream read from the socket
     String message;                //message send to the server
     String MESSAGE;                //capitalized message read from the server ss
-
+    String fileSavePath;
+    FileInputStream fis = null;
+    BufferedInputStream bis = null;
+    OutputStream os = null;
+    FileOutputStream fos = null;
+    BufferedOutputStream bos = null;
+    int current,bytesRead;
     public static void main(String args[]) {
         Client client = new Client();
         client.run();
@@ -34,6 +41,40 @@ public class Client {
                 System.out.print("Hello, please input a sentence: ");
                 message = bufferedReader.readLine();				//read a sentence from the standard input
                 sendMessage(message); 								//Send the sentence to the server
+                String[] inputCommand = message.split("\\s");
+                if(inputCommand[0].toLowerCase().equals("get")){
+                    message = inputCommand[0]+"<>"+inputCommand[1];
+                    fileSavePath = pathOfFileClient + inputCommand[1];
+                    try {
+
+
+                        // receive file
+                        byte [] mybytearray  = new byte [999999999];
+                        InputStream is = requestSocket.getInputStream();
+                        fos = new FileOutputStream(fileSavePath);
+                        bos = new BufferedOutputStream(fos);
+                        bytesRead = is.read(mybytearray,0,mybytearray.length);
+                        current = bytesRead;
+
+                        do {
+                            bytesRead =
+                                    is.read(mybytearray, current, (mybytearray.length-current));
+                            if(bytesRead >= 0) current += bytesRead;
+                        } while(bytesRead > -1);
+
+                        bos.write(mybytearray, 0 , current);
+                        bos.flush();
+                        System.out.println("File " + fileSavePath
+                                + " downloaded (" + current + " bytes read)");
+                    }
+                    finally {
+                        if (fos != null) fos.close();
+                        if (bos != null) bos.close();
+                        //if (sock != null) sock.close();
+                    }
+
+                }
+
                 MESSAGE = (String)in.readObject();					//Receive the upperCase sentence from the server
                 System.out.println("Receive message: " + MESSAGE);	//show the message to the user
             }
