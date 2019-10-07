@@ -3,10 +3,7 @@
   <component name="ChangeListManager">
     <list default="true" id="a184e785-65c7-4f50-852e-2db7ed44ebe1" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/../Client/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../Client/src/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/src/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Server/Server.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Server/Server.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -68,6 +65,7 @@
       <option name="presentableId" value="Default" />
       <updated>1569613750929</updated>
       <workItem from="1569613757175" duration="1190000" />
+      <workItem from="1570468669237" duration="1310000" />
     </task>
     <servers />
   </component>
@@ -92,12 +90,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Server.java</url>
-          <line>40</line>
+          <line>34</line>
           <option name="timeStamp" value="11" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/Server.java</url>
-          <line>41</line>
+          <line>35</line>
           <option name="timeStamp" value="12" />
         </line-breakpoint>
       </breakpoints>
