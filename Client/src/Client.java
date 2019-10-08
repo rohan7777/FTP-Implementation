@@ -3,7 +3,7 @@ import java.io.*;
 
 public class Client {
     final String pathOfFileClient = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPClient\\";
-    Socket localSocket;           //socket connect to the server
+    Socket clientSocket;           //socket connect to the server
     ObjectOutputStream objectOutputStream;         //stream write to the socket
     ObjectInputStream objectInputStream;          //stream read from the socket
     String message;                //message send to the server
@@ -25,12 +25,12 @@ public class Client {
     void run() {
         try{
             //create a socket to connect to the server
-            localSocket = new Socket("localhost", 8000);
+            clientSocket = new Socket("localhost", 8000);
             System.out.println("Connected to localhost in port 8000");
             //initialize inputStream and outputStream
-            objectOutputStream = new ObjectOutputStream(localSocket.getOutputStream());
+            objectOutputStream = new ObjectOutputStream(clientSocket.getOutputStream());
             objectOutputStream.flush();
-            objectInputStream = new ObjectInputStream(localSocket.getInputStream());
+            objectInputStream = new ObjectInputStream(clientSocket.getInputStream());
 
             //get Input from standard input
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
@@ -40,37 +40,34 @@ public class Client {
                 sendMessage(message); 								//Send the sentence to the server
                 String[] inputCommand = message.split("\\s");
                 if(inputCommand[0].toLowerCase().equals("get")){
-                    message = inputCommand[0]+"<>"+inputCommand[1];
-                    fileSavePath = pathOfFileClient + inputCommand[1];
-                    try {
-
-                        // receive file
-                        byte [] mybytearray  = new byte [999999999];
-                        InputStream is = localSocket.getInputStream();
-                        fileOutputStream = new FileOutputStream(fileSavePath);
-                        bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
-                        bytesRead = is.read(mybytearray,0,mybytearray.length);
-                        current = bytesRead;
-
-                        do {
-                            bytesRead =
-                                    is.read(mybytearray, current, (mybytearray.length-current));
-                            if(bytesRead >= 0) current += bytesRead;
-                        } while(bytesRead > -1);
-
-                        bufferedOutputStream.write(mybytearray, 0 , current);
-                        bufferedOutputStream.flush();
-                        System.out.println("File " + fileSavePath
-                                + " downloaded (" + current + " bytes read)");
+                    //MESSAGE = (String) objectInputStream.readObject();
+                    if (true){
+                        fileSavePath = pathOfFileClient + inputCommand[1];
+                        try {
+                            InputStream inputStream = clientSocket.getInputStream();
+                            DataInputStream dataInputStream = new DataInputStream(inputStream);
+                            long fileSize = dataInputStream.readLong();
+                            long x = fileSize;
+                            String fileName = inputCommand[1];
+                            OutputStream outputStream = new FileOutputStream(fileSavePath);
+                            byte[] buffer = new byte[1024];
+                            while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
+                                outputStream.write(buffer, 0, bytesRead);
+                                fileSize -= bytesRead;
+                            }
+                            outputStream.flush();
+                            System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
+                        } finally {
+                            if (fileOutputStream != null) fileOutputStream.close();
+                            if (bufferedOutputStream != null) bufferedOutputStream.close();
+                        }
                     }
-                    finally {
-                        if (fileOutputStream != null) fileOutputStream.close();
-                        if (bufferedOutputStream != null) bufferedOutputStream.close();
-                        //if (sock != null) sock.close();
-                    }
-
                 }
-
+                else if (inputCommand[0].toLowerCase().equals("exit")){
+                    objectInputStream.close();
+                    objectOutputStream.close();
+                    break;
+                }
                 MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
                 System.out.println("Receive message: " + MESSAGE);	//show the message to the user
             }
@@ -91,7 +88,7 @@ public class Client {
             try{
                 objectInputStream.close();
                 objectOutputStream.close();
-                localSocket.close();
+                clientSocket.close();
             }
             catch(IOException ioException){
                 ioException.printStackTrace();

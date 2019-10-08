@@ -1,7 +1,6 @@
 import java.net.*;
 import java.io.*;
 
-
 public class Server {
     int sPort = 8000;    //The server will be listening on this port number
     ServerSocket serverSocket;   //serversocket used to listen on port number 8000
@@ -11,12 +10,17 @@ public class Server {
     String ListOfDir;
     ObjectOutputStream objectOutputStream;  //stream write to the socket
     ObjectInputStream objectInputStream;    //stream read from the socket
-    FileInputStream fileInputStream = null;
-    BufferedInputStream bufferedInputStream = null;
-    OutputStream outputStream = null;
-    public static void main(String args[]) {
+
+    public static void main (String args[]) {
         Server server = new Server();
-        server.run();
+        while (true){
+            try{
+                server.run();
+            }
+            catch (Exception e){
+                System.out.println(e);
+            }
+        }
     }
     //public void Server() {}
     void run() {
@@ -26,6 +30,10 @@ public class Server {
             System.out.println("Waiting for connection");								//Wait for connection
             localSocket = serverSocket.accept();												//accept a connection from the client
             System.out.println("Connection received from " + localSocket.getInetAddress().getHostName());
+
+            InputStream inputStream = localSocket.getInputStream();
+            DataInputStream clientData = new DataInputStream(inputStream);
+
             objectOutputStream = new ObjectOutputStream(localSocket.getOutputStream());					//initialize Input and Output streams
             objectOutputStream.flush();
             objectInputStream = new ObjectInputStream(localSocket.getInputStream());
@@ -33,12 +41,11 @@ public class Server {
             try {
                 while(true) {
                     message = (String) objectInputStream.readObject();							//receive the message sent from the client
-                    System.out.println("Receive message: " + message);			//show the message to the user
+                    //System.out.println("Receive message: " + message);			//show the message to the user
                     String [] inputParamArr = message.split("\\s");
+                    final File folder = new File(pathOfFileServer);
                     if(message.toString().toLowerCase().equals("dir")){
-
                         MESSAGE = "\nPlease find the list of files on the server below - \n";
-                        final File folder = new File(pathOfFileServer);
                         for (final File fileEntry : folder.listFiles()) {
                             System.out.println(fileEntry.getName());
                             MESSAGE += fileEntry.getName() + "\n";
@@ -46,23 +53,33 @@ public class Server {
                     }
                     else if(inputParamArr[0].toLowerCase().equals("get")){
                         String filePath = pathOfFileServer + inputParamArr[1];
-                        try {
-                            // send file
-                            File myFile = new File (filePath);
-                            byte [] mybytearray  = new byte [(int)myFile.length()];
-                            fileInputStream = new FileInputStream(myFile);
-                            bufferedInputStream = new BufferedInputStream(fileInputStream);
-                            bufferedInputStream.read(mybytearray,0,mybytearray.length);
-                            outputStream = localSocket.getOutputStream();
-                            System.out.println("Sending " + filePath + "(" + mybytearray.length + " bytes)");
-                            outputStream.write(mybytearray,0,mybytearray.length);
-                            outputStream.flush();
-                            System.out.println("Done.");
+                        boolean check = new File(pathOfFileServer, inputParamArr[1]).exists();
+                        if (check) {
+                            try {
+                                long start = System.currentTimeMillis();
+                                File myFile = new File(filePath);
+                                byte[] mybytearray = new byte[(int) myFile.length()];
+                                //Create IO streams
+                                FileInputStream fileInputStream = new FileInputStream(myFile);
+                                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+                                DataInputStream dataInputStream = new DataInputStream(bufferedInputStream);
+                                dataInputStream.readFully(mybytearray, 0, mybytearray.length);
+                                OutputStream outputStream = localSocket.getOutputStream();
+                                //Sending filename and filesize
+                                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                                dataOutputStream.writeLong(mybytearray.length);
+                                dataOutputStream.write(mybytearray, 0, mybytearray.length);
+                                dataOutputStream.flush();
+                                long finish = System.currentTimeMillis();
+                                System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
+                            } catch (Exception e){
+                                System.err.println(e);
+                            }
                         }
-                        finally {
-                            if (bufferedInputStream != null) bufferedInputStream.close();
-                            if (outputStream != null) outputStream.close();
-                            //if (sock!=null) sock.close();
+                        else {
+                            System.out.println("File not found");
+                            MESSAGE = "File not found.";
+                            sendMessage(MESSAGE);
                         }
                     }
                     else{
@@ -70,6 +87,12 @@ public class Server {
                     }
                     sendMessage(MESSAGE);					//send MESSAGE back to the client
                 }
+            }
+            catch (EOFException e){
+                System.err.println("End of file ex");
+            }
+            catch (SocketException s){
+                System.err.println("Socket exc");
             }
             catch(ClassNotFoundException classnot){
                 System.err.println("Data received in unknown format");
@@ -94,10 +117,10 @@ public class Server {
         try{
             objectOutputStream.writeObject(msg);
             objectOutputStream.flush();
-            System.out.println("Send message: " + msg);
+            // System.out.println("Send message: " + msg);
         }
         catch(IOException ioException){
-            ioException.printStackTrace();
+                ioException.printStackTrace();
         }
     }
 }
