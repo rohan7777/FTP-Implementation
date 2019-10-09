@@ -43,6 +43,15 @@ public class Server {
                 objectOutputStream = new ObjectOutputStream(localSocket.getOutputStream());                    //initialize Input and Output streams
                 objectOutputStream.flush();
                 objectInputStream = new ObjectInputStream(localSocket.getInputStream());
+                message = (String) objectInputStream.readObject();
+                String[] userDetails = message.split("\\s");
+                if(!(userDetails[0].equals("user") && userDetails[1].equals("pass"))){
+                    String auth = "Incorrect username and password!";
+                    sendMessage(auth);
+                }else{
+                    String auth = "Connected!";
+                    sendMessage(auth);
+                }
                 try {
                     while (true) {
                         message = (String) objectInputStream.readObject();                            //receive the message sent from the client
@@ -60,7 +69,6 @@ public class Server {
                             boolean check = new File(pathOfFileServer, inputParamArr[1]).exists();
                             if (check) {
                                 try {
-                                    long start = System.currentTimeMillis();
                                     File myFile = new File(filePath);
                                     byte[] mybytearray = new byte[(int) myFile.length()];
                                     //Create IO streams
@@ -74,8 +82,6 @@ public class Server {
                                     dataOutputStream.writeLong(mybytearray.length);
                                     dataOutputStream.write(mybytearray, 0, mybytearray.length);
                                     dataOutputStream.flush();
-                                    long finish = System.currentTimeMillis();
-                                    System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
                                 } catch (Exception e) {
                                     System.err.println(e);
                                 }
@@ -105,8 +111,6 @@ public class Server {
                                 /*if (fileOutputStream != null) fileOutputStream.close();
                                 if (bufferedOutputStream != null) bufferedOutputStream.close();*/
                             }
-
-
                         }
                         else {
                             MESSAGE = message.toUpperCase();        //Capitalize all letters in the message
@@ -114,20 +118,22 @@ public class Server {
                         sendMessage(MESSAGE);                    //send MESSAGE back to the client
                         MESSAGE = "";
                     }
-                } catch (EOFException e) {
-                    System.err.println("Client "+ clientNumber + " disconnected.");
-                } catch (SocketException s) {
-                    System.err.println("Client " + clientNumber + " disconnected.");
-                } catch (ClassNotFoundException classnot) {
-                    System.err.println("Data received in unknown format");
-                }
-            } catch (IOException ioException) {
+                    } catch (EOFException | SocketException e) {
+                        System.err.println("Client "+ clientNumber + " disconnected.");
+                    } catch (ClassNotFoundException classnot) {
+                        System.err.println("Data received in unknown format");
+                    }
+
+//                else {
+//                    String auth = "Incorrect username and password";
+//                    sendMessage(auth);
+//                }
+            } catch (IOException | ClassNotFoundException ioException) {
                 ioException.printStackTrace();
             } finally {
                 try {                                    //Close connections
                     objectInputStream.close();
                     objectOutputStream.close();
-                    //serverSocket.close();
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
@@ -137,7 +143,6 @@ public class Server {
             try {
                 objectOutputStream.writeObject(msg);
                 objectOutputStream.flush();
-                // System.out.println("Send message: " + msg);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }

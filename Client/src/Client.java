@@ -27,67 +27,85 @@ public class Client {
 
             //get Input from standard input
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
-            while(true)	{
-                System.out.print("Hello, please input a sentence: ");
-                message = bufferedReader.readLine();				//read a sentence from the standard input
-                sendMessage(message); 								//Send the sentence to the server
-                String[] inputCommand = message.split("\\s");
-                if(inputCommand[0].toLowerCase().equals("get")){
-                    //MESSAGE = (String) objectInputStream.readObject();
-                    fileSavePath = pathOfFileClient + inputCommand[1];
-                    try {
-                        InputStream inputStream = clientSocket.getInputStream();
-                        DataInputStream dataInputStream = new DataInputStream(inputStream);
-                        long fileSize = dataInputStream.readLong();
-                        long x = fileSize;
-                        String fileName = inputCommand[1];
-                        OutputStream outputStream = new FileOutputStream(fileSavePath);
-                        byte[] buffer = new byte[1024];
-                        while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
-                            outputStream.write(buffer, 0, bytesRead);
-                            fileSize -= bytesRead;
-                        }
-                        outputStream.flush();
-                        System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
-                    } finally {
-                        if (fileOutputStream != null) fileOutputStream.close();
-                        if (bufferedOutputStream != null) bufferedOutputStream.close();
+            System.out.println("Enter username ");
+            message = bufferedReader.readLine();
+            System.out.println("Enter password");
+            message += " " + bufferedReader.readLine();
+            sendMessage(message);
+            MESSAGE = (String) objectInputStream.readObject();
+            if(MESSAGE.equals("Connected!")){
+                while(true)	{
+                    System.out.print("Hello, please input a sentence: ");
+                    message = bufferedReader.readLine();				//read a sentence from the standard input
+                    sendMessage(message); 								//Send the sentence to the server
+                    String[] inputCommand = message.split("\\s");
+                    if(inputCommand[0].toLowerCase().equals("dir")){
+                        MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
+                        System.out.println("Receive message: " + MESSAGE);	//show the message to the user
                     }
-                }
-                else if(inputCommand[0].toLowerCase().equals("upload")){
-                    String filePath = pathOfFileClient + inputCommand[1];
-                    boolean check = new File(pathOfFileClient, inputCommand[1]).exists();
-                    if (check) {
+                    else if(inputCommand[0].toLowerCase().equals("get")){
+                        fileSavePath = pathOfFileClient + inputCommand[1];
                         try {
-                            long start = System.currentTimeMillis();
-                            File myFile = new File(filePath);
-                            byte[] mybytearray = new byte[(int) myFile.length()];
-                            //Create IO streams
-                            FileInputStream fileInputStream = new FileInputStream(myFile);
-                            BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
-                            DataInputStream dataInputStream = new DataInputStream(bufferedInputStream);
-                            dataInputStream.readFully(mybytearray, 0, mybytearray.length);
-                            OutputStream outputStream = clientSocket.getOutputStream();
-                            //Sending filename and filesize
-                            DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                            dataOutputStream.writeLong(mybytearray.length);
-                            dataOutputStream.write(mybytearray, 0, mybytearray.length);
-                            dataOutputStream.flush();
-                            long finish = System.currentTimeMillis();
-                            System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
-                        } catch (Exception e) {
-                            System.err.println(e);
+                            InputStream inputStream = clientSocket.getInputStream();
+                            DataInputStream dataInputStream = new DataInputStream(inputStream);
+                            long fileSize = dataInputStream.readLong();
+                            long x = fileSize;
+                            String fileName = inputCommand[1];
+                            OutputStream outputStream = new FileOutputStream(fileSavePath);
+                            byte[] buffer = new byte[1024];
+                            while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
+                                outputStream.write(buffer, 0, bytesRead);
+                                fileSize -= bytesRead;
+                            }
+                            outputStream.flush();
+                            System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
+                        } finally {
+                            if (fileOutputStream != null) fileOutputStream.close();
+                            if (bufferedOutputStream != null) bufferedOutputStream.close();
                         }
-                    } else {
-                        System.out.println("File to be uploaded not found, please check the file name.");
+                    }
+                    else if(inputCommand[0].toLowerCase().equals("upload")){
+                        String filePath = pathOfFileClient + inputCommand[1];
+                        boolean check = new File(pathOfFileClient, inputCommand[1]).exists();
+                        if (check) {
+                            try {
+                                long start = System.currentTimeMillis();
+                                File myFile = new File(filePath);
+                                byte[] mybytearray = new byte[(int) myFile.length()];
+                                //Create IO streams
+                                FileInputStream fileInputStream = new FileInputStream(myFile);
+                                BufferedInputStream bufferedInputStream = new BufferedInputStream(fileInputStream);
+                                DataInputStream dataInputStream = new DataInputStream(bufferedInputStream);
+                                dataInputStream.readFully(mybytearray, 0, mybytearray.length);
+                                OutputStream outputStream = clientSocket.getOutputStream();
+                                //Sending filename and filesize
+                                DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+                                dataOutputStream.writeLong(mybytearray.length);
+                                dataOutputStream.write(mybytearray, 0, mybytearray.length);
+                                dataOutputStream.flush();
+                                long finish = System.currentTimeMillis();
+                                //System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
+                                System.out.println("File " + fileSavePath + " uploaded (" + myFile.length() + " bytes read)");
+                            } catch (Exception e) {
+                                System.err.println(e);
+                            }
+                        } else {
+                            System.out.println("File to be uploaded not found, please check the file name.");
+                        }
+                    }
+                    else if (inputCommand[0].toLowerCase().equals("exit")){
+                        objectInputStream.close();
+                        objectOutputStream.close();
+                        break;
+                    }else {
+                        //MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
+                        //System.out.println("Receive message: " + MESSAGE);	//show the message to the user
+                        System.out.println("Please enter a valid command. Available commands are \n1.dir\n2.get\n3.upload");
                     }
                 }
-                else if (inputCommand[0].toLowerCase().equals("exit")){
-                    objectInputStream.close();
-                    objectOutputStream.close();
-                    break;
-                }
-                MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
+            }
+            else {
+                //MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
                 System.out.println("Receive message: " + MESSAGE);	//show the message to the user
             }
         }
