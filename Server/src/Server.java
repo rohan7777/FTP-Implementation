@@ -84,15 +84,40 @@ public class Server {
                                 MESSAGE = "File not found.";
                                 sendMessage(MESSAGE);
                             }
-                        } else {
+                        }else if(inputParamArr[0].toLowerCase().equals("upload")){
+                            String fileSavePath = pathOfFileServer + inputParamArr[1];
+                            try {
+                                //InputStream inputStream = localSocket.getInputStream();
+                                DataInputStream dataInputStream = new DataInputStream(inputStream);
+                                long fileSize = dataInputStream.readLong();
+                                long x = fileSize;
+                                String fileName = inputParamArr[1];
+                                OutputStream outputStream = new FileOutputStream(fileSavePath);
+                                byte[] buffer = new byte[1024];
+                                int bytesRead;
+                                while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
+                                    outputStream.write(buffer, 0, bytesRead);
+                                    fileSize -= bytesRead;
+                                }
+                                outputStream.flush();
+                                System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
+                            } finally {
+                                /*if (fileOutputStream != null) fileOutputStream.close();
+                                if (bufferedOutputStream != null) bufferedOutputStream.close();*/
+                            }
+
+
+                        }
+                        else {
                             MESSAGE = message.toUpperCase();        //Capitalize all letters in the message
                         }
                         sendMessage(MESSAGE);                    //send MESSAGE back to the client
+                        MESSAGE = "";
                     }
                 } catch (EOFException e) {
                     System.err.println("Client "+ clientNumber + " disconnected.");
                 } catch (SocketException s) {
-                    System.err.println("Socket exc");
+                    System.err.println("Client " + clientNumber + " disconnected.");
                 } catch (ClassNotFoundException classnot) {
                     System.err.println("Data received in unknown format");
                 }
