@@ -6,8 +6,6 @@
       <change beforePath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/out/production/Client/Client.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../Client/src/Client.java" beforeDir="false" afterPath="$PROJECT_DIR$/../Client/src/Client.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Server/META-INF/Server.kotlin_module" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/Server/Server$Handler.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/Server/Server$Handler.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/Server.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/Server.java" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -83,7 +81,8 @@
       <workItem from="1570629722659" duration="3192000" />
       <workItem from="1570645930257" duration="4008000" />
       <workItem from="1570650165028" duration="510000" />
-      <workItem from="1570650693146" duration="1977000" />
+      <workItem from="1570650693146" duration="2144000" />
+      <workItem from="1570719089191" duration="7464000" />
     </task>
     <servers />
   </component>

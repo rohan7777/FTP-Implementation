@@ -28,40 +28,51 @@ public class Client {
             //get Input from standard input
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             System.out.println("Enter username ");
-            message = bufferedReader.readLine();
+            message = bufferedReader.readLine().trim();
             System.out.println("Enter password");
-            message += " " + bufferedReader.readLine();
+            message += " " + bufferedReader.readLine().trim();
             sendMessage(message);
             MESSAGE = (String) objectInputStream.readObject();
             if(MESSAGE.equals("Connected!")){
+                System.out.println("Authentication successful!");
                 while(true)	{
-                    System.out.print("Hello, please input a sentence: ");
+                    System.out.print("Please enter a command : ");
                     message = bufferedReader.readLine();				//read a sentence from the standard input
-                    sendMessage(message); 								//Send the sentence to the server
                     String[] inputCommand = message.split("\\s");
+                    if(inputCommand[0].toLowerCase().equals("dir") || (inputCommand[0].toLowerCase().equals("get") && inputCommand.length == 2) || (inputCommand[0].toLowerCase().equals("upload") && inputCommand.length == 2)) {
+                        sendMessage(message);                                //Send the sentence to the server
+                    }
                     if(inputCommand[0].toLowerCase().equals("dir")){
                         MESSAGE = (String) objectInputStream.readObject();					//Receive the upperCase sentence from the server
-                        System.out.println("Receive message: " + MESSAGE);	//show the message to the user
+                        System.out.println("\n" + MESSAGE);	//show the message to the user
                     }
-                    else if(inputCommand[0].toLowerCase().equals("get")){
+                    else if(inputCommand[0].toLowerCase().equals("get") && inputCommand.length==2){
                         fileSavePath = pathOfFileClient + inputCommand[1];
-                        try {
-                            InputStream inputStream = clientSocket.getInputStream();
-                            DataInputStream dataInputStream = new DataInputStream(inputStream);
-                            long fileSize = dataInputStream.readLong();
-                            long x = fileSize;
-                            String fileName = inputCommand[1];
-                            OutputStream outputStream = new FileOutputStream(fileSavePath);
-                            byte[] buffer = new byte[1024];
-                            while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
-                                outputStream.write(buffer, 0, bytesRead);
-                                fileSize -= bytesRead;
+                        MESSAGE = (String) objectInputStream.readObject();
+//                        if(MESSAGE.equals("File found"))
+
+                        if (MESSAGE.equals("File found.")) {
+                            try {
+                                InputStream inputStream = clientSocket.getInputStream();
+                                DataInputStream dataInputStream = new DataInputStream(inputStream);
+                                long fileSize = dataInputStream.readLong();
+                                long x = fileSize;
+                                String fileName = inputCommand[1];
+                                OutputStream outputStream = new FileOutputStream(fileSavePath);
+                                byte[] buffer = new byte[1024];
+                                while (fileSize > 0 && (bytesRead = dataInputStream.read(buffer, 0, (int) Math.min(buffer.length, fileSize))) != -1) {
+                                    outputStream.write(buffer, 0, bytesRead);
+                                    fileSize -= bytesRead;
+                                }
+                                outputStream.flush();
+                                System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
+                                MESSAGE="";
+                            } finally {
+                                if (fileOutputStream != null) fileOutputStream.close();
+                                if (bufferedOutputStream != null) bufferedOutputStream.close();
                             }
-                            outputStream.flush();
-                            System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
-                        } finally {
-                            if (fileOutputStream != null) fileOutputStream.close();
-                            if (bufferedOutputStream != null) bufferedOutputStream.close();
+                        } else {
+                            System.out.println("Requested file is not present on the server.");
                         }
                     }
                     else if(inputCommand[0].toLowerCase().equals("upload")){
@@ -85,7 +96,7 @@ public class Client {
                                 dataOutputStream.flush();
                                 long finish = System.currentTimeMillis();
                                 //System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
-                                System.out.println("File " + fileSavePath + " uploaded (" + myFile.length() + " bytes read)");
+                                System.out.println("File " + inputCommand[1].toString() + " uploaded (" + myFile.length() + " bytes read)");
                             } catch (Exception e) {
                                 System.err.println(e);
                             }
@@ -139,7 +150,7 @@ public class Client {
         try{														//stream write the message
             objectOutputStream.writeObject(msg);
             objectOutputStream.flush();
-            System.out.println("Send message: " + msg);
+            //System.out.println("Send message: " + msg);
         }
         catch(IOException ioException){
             ioException.printStackTrace();

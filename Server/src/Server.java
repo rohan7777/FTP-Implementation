@@ -9,6 +9,7 @@ public class Server {
         serverSocket = new ServerSocket(sPort, 10);
         int clientNum = 1;
         System.out.println("The server is listening for connections ");
+        System.out.println(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
         while (true) {
             try {
                 //server.run();
@@ -49,6 +50,7 @@ public class Server {
                     String auth = "Incorrect username and password!";
                     sendMessage(auth);
                 }else{
+                    System.out.println("Client " + clientNumber + " authenticated!");
                     String auth = "Connected!";
                     sendMessage(auth);
                 }
@@ -63,12 +65,15 @@ public class Server {
                             for (final File fileEntry : folder.listFiles()) {
                                 MESSAGE += fileEntry.getName() + "\n";
                             }
+                            sendMessage(MESSAGE);
                         } else if (inputParamArr[0].toLowerCase().equals("get")) {
                             System.out.println("Client "+clientNumber + " issued \"get\" command.");
                             String filePath = pathOfFileServer + inputParamArr[1];
                             boolean check = new File(pathOfFileServer, inputParamArr[1]).exists();
                             if (check) {
                                 try {
+                                    MESSAGE = "File found.";
+                                    sendMessage(MESSAGE);
                                     File myFile = new File(filePath);
                                     byte[] mybytearray = new byte[(int) myFile.length()];
                                     //Create IO streams
@@ -82,6 +87,7 @@ public class Server {
                                     dataOutputStream.writeLong(mybytearray.length);
                                     dataOutputStream.write(mybytearray, 0, mybytearray.length);
                                     dataOutputStream.flush();
+
                                 } catch (Exception e) {
                                     System.err.println(e);
                                 }
@@ -115,7 +121,7 @@ public class Server {
                         else {
                             MESSAGE = message.toUpperCase();        //Capitalize all letters in the message
                         }
-                        sendMessage(MESSAGE);                    //send MESSAGE back to the client
+                        //sendMessage(MESSAGE);                    //send MESSAGE back to the client
                         MESSAGE = "";
                     }
                     } catch (EOFException | SocketException e) {
@@ -128,8 +134,8 @@ public class Server {
 //                    String auth = "Incorrect username and password";
 //                    sendMessage(auth);
 //                }
-            } catch (IOException | ClassNotFoundException ioException) {
-                ioException.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             } finally {
                 try {                                    //Close connections
                     objectInputStream.close();
