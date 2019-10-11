@@ -9,7 +9,6 @@ public class Server {
         serverSocket = new ServerSocket(sPort, 10);
         int clientNum = 1;
         System.out.println("The server is listening for connections ");
-        System.out.println(Server.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
         while (true) {
             try {
                 //server.run();
@@ -44,15 +43,18 @@ public class Server {
                 objectOutputStream = new ObjectOutputStream(localSocket.getOutputStream());                    //initialize Input and Output streams
                 objectOutputStream.flush();
                 objectInputStream = new ObjectInputStream(localSocket.getInputStream());
-                message = (String) objectInputStream.readObject();
-                String[] userDetails = message.split("\\s");
-                if(!(userDetails[0].equals("user") && userDetails[1].equals("pass"))){
-                    String auth = "Incorrect username and password!";
-                    sendMessage(auth);
-                }else{
-                    System.out.println("Client " + clientNumber + " authenticated!");
-                    String auth = "Connected!";
-                    sendMessage(auth);
+                String auth="";
+                while (!auth.equals("Connected!")) {
+                    message = (String) objectInputStream.readObject();
+                    String[] userDetails = message.split("\\s");
+                    if(!(userDetails[0].equals("user") && userDetails[1].equals("pass"))){
+                        auth = "Incorrect username and password!";
+                        sendMessage(auth);
+                    }else{
+                        System.out.println("Client " + clientNumber + " authenticated!");
+                        auth = "Connected!";
+                        sendMessage(auth);
+                    }
                 }
                 try {
                     while (true) {
