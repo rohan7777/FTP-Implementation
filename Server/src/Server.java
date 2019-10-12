@@ -11,7 +11,6 @@ public class Server {
         System.out.println("The server is listening for connections ");
         while (true) {
             try {
-                //server.run();
                 new Handler(serverSocket.accept(),clientNum).start();
                 System.out.println("Client " + clientNum++ + " is connected!");
             } catch (Exception e) {
@@ -19,15 +18,13 @@ public class Server {
             }
         }
     }
-    //public void Server() {}
 
     public static class Handler extends Thread {
-        Socket localSocket = null; //socket for the connection with the client
+        Socket localSocket = null;              //socket for the connection with the client
         int clientNumber;
         ObjectOutputStream objectOutputStream;  //stream write to the socket
         ObjectInputStream objectInputStream;    //stream read from the socket
-        String message;    //message received from the client
-        String MESSAGE;    //uppercase message send to the client
+        String message, MESSAGE;
 
         public Handler(Socket localSocket, int no){
             this.localSocket = localSocket;
@@ -36,31 +33,46 @@ public class Server {
 
         public void run() {
             try {
-                final String pathOfFileServer = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPServer\\";
-                System.out.println("Connection received from " + localSocket.getInetAddress().getHostName());
+                final String pathOfFileServer = "F:\\UF Acad\\Sem 1\\Computer Networks\\Project\\FTPServer\\";  //Path of the FTP file server
+                System.out.println("Connection received from " + localSocket.getInetAddress().getHostName());   // Print out the client's address
                 InputStream inputStream = localSocket.getInputStream();
                 DataInputStream clientData = new DataInputStream(inputStream);
                 objectOutputStream = new ObjectOutputStream(localSocket.getOutputStream());                    //initialize Input and Output streams
                 objectOutputStream.flush();
                 objectInputStream = new ObjectInputStream(localSocket.getInputStream());
+                String auth="";
+                while (!auth.equals("Connected!")) {                                    //Authenticate the client
+                    message = (String) objectInputStream.readObject();
+                    String[] userDetails = message.split("\\s");
+                    if(!(userDetails[0].equals("user") && userDetails[1].equals("pass"))){
+                        auth = "Incorrect username and password!";
+                        sendMessage(auth);
+                    }else{
+                        System.out.println("Client " + clientNumber + " authenticated!");
+                        auth = "Connected!";
+                        sendMessage(auth);
+                    }
+                }
                 try {
                     while (true) {
-                        message = (String) objectInputStream.readObject();                            //receive the message sent from the client
+                        message = (String) objectInputStream.readObject();                            //receive the request sent from the client
                         String[] inputParamArr = message.split("\\s");
                         final File folder = new File(pathOfFileServer);
-                        if (message.toString().toLowerCase().equals("dir")) {
+                        if (message.toString().toLowerCase().equals("dir")) {                       //Process dir request
                             System.out.println("Client "+clientNumber + " issued \"dir\" command.");
                             MESSAGE = "\nPlease find the list of files on the server below - \n";
                             for (final File fileEntry : folder.listFiles()) {
                                 MESSAGE += fileEntry.getName() + "\n";
                             }
-                        } else if (inputParamArr[0].toLowerCase().equals("get")) {
+                            sendMessage(MESSAGE);
+                        } else if (inputParamArr[0].toLowerCase().equals("get")) {                 //Process get request
                             System.out.println("Client "+clientNumber + " issued \"get\" command.");
                             String filePath = pathOfFileServer + inputParamArr[1];
                             boolean check = new File(pathOfFileServer, inputParamArr[1]).exists();
                             if (check) {
                                 try {
-                                    long start = System.currentTimeMillis();
+                                    MESSAGE = "File found.";
+                                    sendMessage(MESSAGE);
                                     File myFile = new File(filePath);
                                     byte[] mybytearray = new byte[(int) myFile.length()];
                                     //Create IO streams
@@ -74,8 +86,7 @@ public class Server {
                                     dataOutputStream.writeLong(mybytearray.length);
                                     dataOutputStream.write(mybytearray, 0, mybytearray.length);
                                     dataOutputStream.flush();
-                                    long finish = System.currentTimeMillis();
-                                    System.out.println("Done.\nTime taken ->" + Long.toString(finish - start));
+
                                 } catch (Exception e) {
                                     System.err.println(e);
                                 }
@@ -84,10 +95,9 @@ public class Server {
                                 MESSAGE = "File not found.";
                                 sendMessage(MESSAGE);
                             }
-                        }else if(inputParamArr[0].toLowerCase().equals("upload")){
+                        }else if(inputParamArr[0].toLowerCase().equals("upload")){          //Handle upload request
                             String fileSavePath = pathOfFileServer + inputParamArr[1];
                             try {
-                                //InputStream inputStream = localSocket.getInputStream();
                                 DataInputStream dataInputStream = new DataInputStream(inputStream);
                                 long fileSize = dataInputStream.readLong();
                                 long x = fileSize;
@@ -101,33 +111,23 @@ public class Server {
                                 }
                                 outputStream.flush();
                                 System.out.println("File " + fileSavePath + " downloaded (" + x + " bytes read)");
-                            } finally {
-                                /*if (fileOutputStream != null) fileOutputStream.close();
-                                if (bufferedOutputStream != null) bufferedOutputStream.close();*/
+                            } catch (Exception e){
+
                             }
-
-
                         }
-                        else {
-                            MESSAGE = message.toUpperCase();        //Capitalize all letters in the message
-                        }
-                        sendMessage(MESSAGE);                    //send MESSAGE back to the client
                         MESSAGE = "";
                     }
-                } catch (EOFException e) {
-                    System.err.println("Client "+ clientNumber + " disconnected.");
-                } catch (SocketException s) {
-                    System.err.println("Client " + clientNumber + " disconnected.");
-                } catch (ClassNotFoundException classnot) {
-                    System.err.println("Data received in unknown format");
-                }
-            } catch (IOException ioException) {
-                ioException.printStackTrace();
+                    } catch (EOFException | SocketException e) {
+                        System.err.println("Client "+ clientNumber + " disconnected.");
+                    } catch (ClassNotFoundException classnot) {
+                        System.err.println("Data received in unknown format");
+                    }
+            } catch (Exception e) {
+                System.out.println("Client " + clientNumber + " disconnected.");
             } finally {
                 try {                                    //Close connections
                     objectInputStream.close();
                     objectOutputStream.close();
-                    //serverSocket.close();
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 }
@@ -137,7 +137,6 @@ public class Server {
             try {
                 objectOutputStream.writeObject(msg);
                 objectOutputStream.flush();
-                // System.out.println("Send message: " + msg);
             } catch (IOException ioException) {
                 ioException.printStackTrace();
             }
